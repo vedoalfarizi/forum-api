@@ -111,4 +111,31 @@ describe('/threads endpoint', () => {
       expect(responseJson.message).toEqual('title dan body harus string');
     });
   });
+
+  describe('when POST /threads/{threadId}/comments', () => {
+    it('should response 201 and persisted comment', async () => {
+      const payload = {
+        content: 'a content',
+      };
+
+      const server = await createServer(container);
+
+      const accessToken = await ServerTestHelper.getAccessToken();
+      await ThreadsTableTestHelper.addThread({});
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/threads/thread-123/comments',
+        payload,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(201);
+      expect(responseJson.status).toEqual('success');
+      expect(responseJson.data.addedComment).toBeDefined();
+    });
+  });
 });

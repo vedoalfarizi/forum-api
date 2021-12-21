@@ -4,6 +4,7 @@ const pool = require('../../database/postgres/pool');
 const ThreadRepositoryPostgres = require('../ThreadRepositoryPostgres');
 const AddThread = require('../../../Domains/threads/entities/AddThread');
 const AddedThread = require('../../../Domains/threads/entities/AddedThread');
+const NotFoundError = require('../../../Commons/exceptions/NotFoundError');
 
 describe('ThreadRepositoryPostgres', () => {
   beforeEach(async () => {
@@ -19,9 +20,9 @@ describe('ThreadRepositoryPostgres', () => {
     await pool.end();
   });
 
-  describe('addThread function', () => {
-    const fakeIdGenerator = () => '123';
+  const fakeIdGenerator = () => '123';
 
+  describe('addThread function', () => {
     it('should persist add thread and return added thread correctly', async () => {
       const addThread = new AddThread({
         userId: 'user-123',
@@ -51,6 +52,26 @@ describe('ThreadRepositoryPostgres', () => {
         title: addThread.title,
         owner: addThread.userId,
       }));
+    });
+  });
+
+  describe('verifyId function', () => {
+    const threadId = 'thread-123';
+
+    it('should throw NotFoundError if not valid id', async () => {
+      const threadRepository = new ThreadRepositoryPostgres(pool, fakeIdGenerator);
+
+      await expect(threadRepository.verifyId(threadId))
+        .rejects.toThrow(NotFoundError);
+    });
+
+    it('should not throw NotFoundError if valid id', async () => {
+      const threadRepository = new ThreadRepositoryPostgres(pool, fakeIdGenerator);
+
+      await ThreadsTableTestHelper.addThread({});
+
+      await expect(threadRepository.verifyId(threadId))
+        .resolves.not.toThrow(NotFoundError);
     });
   });
 });
