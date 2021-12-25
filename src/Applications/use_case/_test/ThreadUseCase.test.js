@@ -1,8 +1,10 @@
 const AddThread = require('../../../Domains/threads/entities/AddThread');
 const AddedThread = require('../../../Domains/threads/entities/AddedThread');
 const DetailedThreadComments = require('../../../Domains/threads/entities/DetailedThreadComments');
+
 const ThreadRepository = require('../../../Domains/threads/ThreadRepository');
 const CommentRepository = require('../../../Domains/comments/CommentRepository');
+
 const ThreadUseCase = require('../ThreadUseCase');
 
 describe('ThreadUseCase', () => {

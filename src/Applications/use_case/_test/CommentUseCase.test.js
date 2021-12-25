@@ -1,8 +1,10 @@
 const AddComment = require('../../../Domains/comments/entities/AddComment');
 const AddedComment = require('../../../Domains/comments/entities/AddedComment');
 const DeleteComment = require('../../../Domains/comments/entities/DeleteComment');
+
 const CommentRepository = require('../../../Domains/comments/CommentRepository');
 const ThreadRepository = require('../../../Domains/threads/ThreadRepository');
+
 const CommentUseCase = require('../CommentUseCase');
 
 describe('CommentUseCase', () => {

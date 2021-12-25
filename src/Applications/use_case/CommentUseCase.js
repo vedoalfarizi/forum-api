@@ -18,12 +18,12 @@ class CommentUseCase {
   async deleteCommentExec(useCasePayload) {
     const deleteComment = new DeleteComment(useCasePayload);
 
-    await this._commentRepository.verifyCommentOwner(deleteComment.commentId, deleteComment.userId);
-
     await this._commentRepository.verifyThreadComments(
       deleteComment.threadId,
       deleteComment.commentId,
     );
+
+    await this._commentRepository.verifyCommentOwner(deleteComment.commentId, deleteComment.userId);
 
     await this._commentRepository.deleteComment(deleteComment);
   }

@@ -5,11 +5,7 @@ const PasswordHash = require('../../security/PasswordHash');
 const AddUserUseCase = require('../AddUserUseCase');
 
 describe('AddUserUseCase', () => {
-  /**
-   * Menguji apakah use case mampu mengoskestrasikan langkah demi langkah dengan benar.
-   */
   it('should orchestrating the add user action correctly', async () => {
-    // Arrange
     const useCasePayload = {
       username: 'dicoding',
       password: 'secret',
@@ -21,11 +17,9 @@ describe('AddUserUseCase', () => {
       fullname: useCasePayload.fullname,
     });
 
-    /** creating dependency of use case */
     const mockUserRepository = new UserRepository();
     const mockPasswordHash = new PasswordHash();
 
-    /** mocking needed function */
     mockUserRepository.verifyAvailableUsername = jest.fn()
       .mockImplementation(() => Promise.resolve());
     mockPasswordHash.hash = jest.fn()
@@ -33,16 +27,13 @@ describe('AddUserUseCase', () => {
     mockUserRepository.addUser = jest.fn()
       .mockImplementation(() => Promise.resolve(expectedRegisteredUser));
 
-    /** creating use case instance */
     const getUserUseCase = new AddUserUseCase({
       userRepository: mockUserRepository,
       passwordHash: mockPasswordHash,
     });
 
-    // Action
     const registeredUser = await getUserUseCase.execute(useCasePayload);
 
-    // Assert
     expect(registeredUser).toStrictEqual(expectedRegisteredUser);
     expect(mockUserRepository.verifyAvailableUsername).toBeCalledWith(useCasePayload.username);
     expect(mockPasswordHash.hash).toBeCalledWith(useCasePayload.password);

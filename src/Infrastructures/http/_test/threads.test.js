@@ -85,7 +85,7 @@ describe('/threads endpoint', () => {
       const responseJson = JSON.parse(response.payload);
       expect(response.statusCode).toEqual(400);
       expect(responseJson.status).toEqual('fail');
-      expect(responseJson.message).toEqual('harus mengirimkan tilte dan body');
+      expect(responseJson.message).toEqual('tidak dapat menambahkan thread karena title atau body kosong');
     });
 
     it('should response 400 when request payload not meet data type specification', async () => {
@@ -110,7 +110,7 @@ describe('/threads endpoint', () => {
       const responseJson = JSON.parse(response.payload);
       expect(response.statusCode).toEqual(400);
       expect(responseJson.status).toEqual('fail');
-      expect(responseJson.message).toEqual('title dan body harus string');
+      expect(responseJson.message).toEqual('tidak dapat menambahkan thread karena title atau body tidak valid');
     });
   });
 
@@ -139,6 +139,76 @@ describe('/threads endpoint', () => {
       expect(responseJson.status).toEqual('success');
       expect(responseJson.data.addedComment).toBeDefined();
     });
+
+    it('should response 401 when auth not valid', async () => {
+      const payload = {
+        content: 'a content',
+      };
+
+      const server = await createServer(container);
+      const response = await server.inject({
+        method: 'POST',
+        url: '/threads/thread-123/comments',
+        payload,
+        headers: {
+          Authorization: 'Bearer invalid-token',
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(401);
+      expect(responseJson.error).toEqual('Unauthorized');
+    });
+
+    it('should response 400 when request payload not contain needed property', async () => {
+      const payload = {
+        invalid: 'a title',
+      };
+
+      const server = await createServer(container);
+
+      const accessToken = await ServerTestHelper.getAccessToken();
+      await ThreadsTableTestHelper.addThread({});
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/threads/thread-123/comments',
+        payload,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(400);
+      expect(responseJson.status).toEqual('fail');
+      expect(responseJson.message).toEqual('tidak dapat menambahkan komentar pada thread karena komentar kosong');
+    });
+
+    it('should response 400 when request payload not meet data type specification', async () => {
+      const payload = {
+        content: true,
+      };
+
+      const server = await createServer(container);
+
+      const accessToken = await ServerTestHelper.getAccessToken();
+      await ThreadsTableTestHelper.addThread({});
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/threads/thread-123/comments',
+        payload,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(400);
+      expect(responseJson.status).toEqual('fail');
+      expect(responseJson.message).toEqual('tidak dapat menambahkan komentar pada thread karena komentar tidak valid');
+    });
   });
 
   describe('when DELETE /threads/{threadId}/comments/{commentId}', () => {
@@ -161,27 +231,96 @@ describe('/threads endpoint', () => {
       expect(response.statusCode).toEqual(200);
       expect(responseJson.status).toEqual('success');
     });
+
+    it('should response 401 when auth not valid', async () => {
+      const server = await createServer(container);
+
+      const response = await server.inject({
+        method: 'DELETE',
+        url: '/threads/thread-123/comments/comment-123',
+        headers: {
+          Authorization: 'Bearer invalid token',
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(401);
+      expect(responseJson.error).toEqual('Unauthorized');
+    });
+
+    it('should response 404 when thread or comment not found', async () => {
+      const server = await createServer(container);
+
+      const accessToken = await ServerTestHelper.getAccessToken();
+
+      const response = await server.inject({
+        method: 'DELETE',
+        url: '/threads/thread-123/comments/comment-123',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(404);
+      expect(responseJson.status).toEqual('fail');
+      expect(responseJson.message).toEqual('Komentar pada thread tidak ditemukan');
+    });
+
+    it('should response 403 when user not the author of the comment', async () => {
+      const server = await createServer(container);
+
+      const accessToken = await ServerTestHelper.getAccessToken();
+      await UsersTableTestHelper.addUser({ id: 'user-234', username: 'comentator' });
+      await ThreadsTableTestHelper.addThread({});
+      await CommentsTableTestHelper.addComment({ owner: 'user-234' });
+
+      const response = await server.inject({
+        method: 'DELETE',
+        url: '/threads/thread-123/comments/comment-123',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(403);
+      expect(responseJson.status).toEqual('fail');
+      expect(responseJson.message).toEqual('Tidak dapat menghapus komentar yang bukan milik Anda');
+    });
   });
 
   describe('when GET /threads/{threadId}', () => {
     it('should response 200 and persisted detail thread with comments', async () => {
-      const params = {
-        threadId: 'thread-123',
-      };
-
       const server = await createServer(container);
 
       await ServerTestHelper.addThreadComments();
 
       const response = await server.inject({
         method: 'GET',
-        url: `/threads/${params.threadId}`,
+        url: '/threads/thread-123',
       });
 
       const responseJson = JSON.parse(response.payload);
       expect(response.statusCode).toEqual(200);
       expect(responseJson.status).toEqual('success');
       expect(responseJson.data.thread).toBeDefined();
+    });
+
+    it('should response 404 when thread not exists', async () => {
+      const server = await createServer(container);
+
+      await ServerTestHelper.addThreadComments();
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/threads/thread-234',
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(404);
+      expect(responseJson.status).toEqual('fail');
+      expect(responseJson.message).toEqual('thread tidak ditemukan');
     });
   });
 });

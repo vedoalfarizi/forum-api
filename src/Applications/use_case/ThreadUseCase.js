@@ -21,8 +21,11 @@ class ThreadUseCase {
 
   async getThreadDetailExec(useCasePayload) {
     this._verifyThreadDetailPayload(useCasePayload);
-    const thread = await this._threadRepository.getDetailById(useCasePayload.threadId);
-    const comments = await this._commentRepository.getAllCommentByThreadId(useCasePayload.threadId);
+
+    const [thread, comments] = await Promise.all([
+      this._threadRepository.getDetailById(useCasePayload.threadId),
+      this._commentRepository.getAllCommentByThreadId(useCasePayload.threadId),
+    ]);
 
     const threadComments = new DetailedThreadComments(thread, comments);
 
