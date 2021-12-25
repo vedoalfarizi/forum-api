@@ -57,9 +57,9 @@ describe('CommentUseCase', () => {
       const mockCommentRepository = new CommentRepository();
       const mockThreadRepository = new ThreadRepository();
 
-      mockCommentRepository.verifyCommentOwner = jest.fn()
-        .mockImplementation(() => Promise.resolve());
       mockCommentRepository.verifyThreadComments = jest.fn()
+        .mockImplementation(() => Promise.resolve());
+      mockCommentRepository.verifyCommentOwner = jest.fn()
         .mockImplementation(() => Promise.resolve());
       mockCommentRepository.deleteComment = jest.fn()
         .mockImplementation(() => Promise.resolve());
@@ -70,16 +70,13 @@ describe('CommentUseCase', () => {
       });
 
       await commentUseCase.deleteCommentExec(useCasePayload);
+
       expect(mockCommentRepository.verifyCommentOwner)
         .toBeCalledWith(useCasePayload.commentId, useCasePayload.userId);
       expect(mockCommentRepository.verifyThreadComments)
         .toBeCalledWith(useCasePayload.threadId, useCasePayload.commentId);
       expect(mockCommentRepository.deleteComment)
-        .toBeCalledWith(new DeleteComment({
-          userId: useCasePayload.userId,
-          threadId: useCasePayload.threadId,
-          commentId: useCasePayload.commentId,
-        }));
+        .toBeCalledWith(useCasePayload.commentId);
     });
   });
 });
