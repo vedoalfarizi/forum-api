@@ -15,15 +15,6 @@ class JwtTokenManager extends AuthenticationTokenManager {
     return this._jwt.generate(payload, process.env.REFRESH_TOKEN_KEY);
   }
 
-  async verifyAccessToken(token) {
-    try {
-      const artifacts = this._jwt.decode(token);
-      this._jwt.verify(artifacts, process.env.ACCESS_TOKEN_KEY);
-    } catch (error) {
-      throw new InvariantError('access token tidak valid');
-    }
-  }
-
   async verifyRefreshToken(token) {
     try {
       const artifacts = this._jwt.decode(token);

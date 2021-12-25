@@ -1,10 +1,14 @@
-const AddComment = require('../../../Domains/comments/entities/AddComment');
-const AddedComment = require('../../../Domains/comments/entities/AddedComment');
 const pool = require('../../database/postgres/pool');
-const CommentRepositoryPostgres = require('../CommentRepositoryPostgres');
 const CommentsTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
 const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
 const ThreadsTableTestHelper = require('../../../../tests/ThreadsTableTestHelper');
+
+const AddComment = require('../../../Domains/comments/entities/AddComment');
+const AddedComment = require('../../../Domains/comments/entities/AddedComment');
+const DetailedComment = require('../../../Domains/comments/entities/DetailedComment');
+
+const CommentRepositoryPostgres = require('../CommentRepositoryPostgres');
+
 const NotFoundError = require('../../../Commons/exceptions/NotFoundError');
 const AuthorizationError = require('../../../Commons/exceptions/AuthorizationError');
 
@@ -114,6 +118,51 @@ describe('CommentRepositoryPostgres', () => {
 
       await expect(commentRepository.verifyCommentOwner(commentId, owner))
         .resolves.not.toThrow(AuthorizationError);
+    });
+  });
+
+  describe('getAllCommentByThreadId function', () => {
+    const threadId = 'thread-123';
+    it('should return empty array when comment not exists on the thread', async () => {
+      const commentRepository = new CommentRepositoryPostgres(pool, fakeIdGenerator);
+
+      const comments = await commentRepository.getAllCommentByThreadId(threadId);
+
+      expect(comments).toStrictEqual([]);
+    });
+
+    it('should return array of comments correctly', async () => {
+      const commentRepository = new CommentRepositoryPostgres(pool, fakeIdGenerator);
+
+      await CommentsTableTestHelper.addComment({
+        id: 'comment-234',
+        content: 'deleted content',
+        insertedAt: '2021-12-22T20:42:14.859+07:00',
+        deletedAt: '2021-12-22T21:42:14.859+07:00',
+      });
+      await CommentsTableTestHelper.addComment({});
+
+      const comments = await commentRepository.getAllCommentByThreadId(threadId);
+
+      expect(comments).toHaveLength(2);
+      expect(comments[0]).toStrictEqual(new DetailedComment(
+        {
+          id: 'comment-234',
+          username: 'dicoding',
+          content: 'deleted content',
+          inserted_at: '2021-12-22T20:42:14.859+07:00',
+          deleted_at: '2021-12-22T21:42:14.859+07:00',
+        },
+      ));
+      expect(comments[1]).toStrictEqual(new DetailedComment(
+        {
+          id: 'comment-123',
+          username: 'dicoding',
+          content: 'a content',
+          inserted_at: '2021-12-22T22:42:14.859+07:00',
+          deleted_at: null,
+        },
+      ));
     });
   });
 });

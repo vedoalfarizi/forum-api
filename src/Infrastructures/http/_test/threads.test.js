@@ -162,4 +162,26 @@ describe('/threads endpoint', () => {
       expect(responseJson.status).toEqual('success');
     });
   });
+
+  describe('when GET /threads/{threadId}', () => {
+    it('should response 200 and persisted detail thread with comments', async () => {
+      const params = {
+        threadId: 'thread-123',
+      };
+
+      const server = await createServer(container);
+
+      await ServerTestHelper.addThreadComments();
+
+      const response = await server.inject({
+        method: 'GET',
+        url: `/threads/${params.threadId}`,
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(200);
+      expect(responseJson.status).toEqual('success');
+      expect(responseJson.data.thread).toBeDefined();
+    });
+  });
 });

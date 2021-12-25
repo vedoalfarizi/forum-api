@@ -2,8 +2,9 @@ const AuthorizationError = require('../../Commons/exceptions/AuthorizationError'
 const NotFoundError = require('../../Commons/exceptions/NotFoundError');
 const CommentRepository = require('../../Domains/comments/CommentRepository');
 const AddedComment = require('../../Domains/comments/entities/AddedComment');
+const DetailedComment = require('../../Domains/comments/entities/DetailedComment');
 
-class CommentRepsitoryPostgres extends CommentRepository {
+class CommentRepositoryPostgres extends CommentRepository {
   constructor(pool, idGenerator) {
     super();
     this._pool = pool;
@@ -47,6 +48,19 @@ class CommentRepsitoryPostgres extends CommentRepository {
 
     if (!result.rowCount) throw new AuthorizationError('Tidak dapat menghapus komentar yang bukan milik Anda');
   }
+
+  async getAllCommentByThreadId(threadId) {
+    const result = await this._pool.query({
+      text: `SELECT comments.id, users.username, comments.inserted_at, comments.content, comments.deleted_at
+      FROM comments
+      INNER JOIN users ON users.id = comments.owner
+      WHERE comments.thread_id = $1
+      ORDER BY comments.inserted_at ASC`,
+      values: [threadId],
+    });
+
+    return result.rows.map((comment) => new DetailedComment(comment));
+  }
 }
 
-module.exports = CommentRepsitoryPostgres;
+module.exports = CommentRepositoryPostgres;
