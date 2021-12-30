@@ -24,8 +24,7 @@ describe('ThreadUseCase', () => {
 
       const mockThreadRepository = new ThreadRepository();
 
-      mockThreadRepository.addThread = jest.fn()
-        .mockImplementation(() => Promise.resolve(expectedResponse));
+      mockThreadRepository.addThread = jest.fn(() => Promise.resolve(expectedResponse));
 
       const threadUseCase = new ThreadUseCase({
         threadRepository: mockThreadRepository,
@@ -81,10 +80,9 @@ describe('ThreadUseCase', () => {
       const mockThreadRepository = new ThreadRepository();
       const mockCommentRepository = new CommentRepository();
 
-      mockThreadRepository.getDetailById = jest.fn()
-        .mockImplementation(() => Promise.resolve(expectedThreadResponse));
-      mockCommentRepository.getAllCommentByThreadId = jest.fn()
-        .mockImplementation(() => Promise.resolve(expectedCommentResponse));
+      mockThreadRepository.getDetailById = jest.fn(() => Promise.resolve(expectedThreadResponse));
+      mockCommentRepository.getAllCommentByThreadId = jest
+        .fn(() => Promise.resolve(expectedCommentResponse));
 
       const threadUseCase = new ThreadUseCase({
         threadRepository: mockThreadRepository,

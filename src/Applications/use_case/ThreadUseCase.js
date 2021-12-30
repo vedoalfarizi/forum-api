@@ -27,9 +27,7 @@ class ThreadUseCase {
       this._commentRepository.getAllCommentByThreadId(useCasePayload.threadId),
     ]);
 
-    const threadComments = new DetailedThreadComments(thread, comments);
-
-    return threadComments;
+    return new DetailedThreadComments(thread, comments);
   }
 }
 

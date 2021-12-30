@@ -36,7 +36,6 @@ class CommentsHandler {
     const response = h.response({
       status: 'success',
     });
-    response.code(200);
     return response;
   }
 }

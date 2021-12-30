@@ -1,6 +1,5 @@
 const AddComment = require('../../../Domains/comments/entities/AddComment');
 const AddedComment = require('../../../Domains/comments/entities/AddedComment');
-const DeleteComment = require('../../../Domains/comments/entities/DeleteComment');
 
 const CommentRepository = require('../../../Domains/comments/CommentRepository');
 const ThreadRepository = require('../../../Domains/threads/ThreadRepository');
@@ -25,10 +24,8 @@ describe('CommentUseCase', () => {
       const mockThreadRepository = new ThreadRepository();
       const mockCommentRepository = new CommentRepository();
 
-      mockThreadRepository.verifyId = jest.fn()
-        .mockImplementation(() => Promise.resolve());
-      mockCommentRepository.addComment = jest.fn()
-        .mockImplementation(() => Promise.resolve(expectedResponse));
+      mockThreadRepository.verifyId = jest.fn(() => Promise.resolve());
+      mockCommentRepository.addComment = jest.fn(() => Promise.resolve(expectedResponse));
 
       const commentUseCase = new CommentUseCase({
         threadRepository: mockThreadRepository,
@@ -57,12 +54,9 @@ describe('CommentUseCase', () => {
       const mockCommentRepository = new CommentRepository();
       const mockThreadRepository = new ThreadRepository();
 
-      mockCommentRepository.verifyThreadComments = jest.fn()
-        .mockImplementation(() => Promise.resolve());
-      mockCommentRepository.verifyCommentOwner = jest.fn()
-        .mockImplementation(() => Promise.resolve());
-      mockCommentRepository.deleteComment = jest.fn()
-        .mockImplementation(() => Promise.resolve());
+      mockCommentRepository.verifyThreadComments = jest.fn(() => Promise.resolve());
+      mockCommentRepository.verifyCommentOwner = jest.fn(() => Promise.resolve());
+      mockCommentRepository.deleteComment = jest.fn(() => Promise.resolve());
 
       const commentUseCase = new CommentUseCase({
         threadRepository: mockThreadRepository,
