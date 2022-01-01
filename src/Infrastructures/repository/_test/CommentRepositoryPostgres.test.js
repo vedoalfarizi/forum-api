@@ -11,6 +11,7 @@ const CommentRepositoryPostgres = require('../CommentRepositoryPostgres');
 
 const NotFoundError = require('../../../Commons/exceptions/NotFoundError');
 const AuthorizationError = require('../../../Commons/exceptions/AuthorizationError');
+const CommentLikesTableTestHelper = require('../../../../tests/CommentLikesTableTestHelper');
 
 describe('CommentRepositoryPostgres', () => {
   beforeEach(async () => {
@@ -22,6 +23,7 @@ describe('CommentRepositoryPostgres', () => {
     await CommentsTableTestHelper.cleanTable();
     await UsersTableTestHelper.cleanTable();
     await ThreadsTableTestHelper.cleanTable();
+    await CommentLikesTableTestHelper.cleanTable();
   });
 
   afterAll(async () => {
@@ -141,6 +143,7 @@ describe('CommentRepositoryPostgres', () => {
         deletedAt: '2021-12-22T21:42:14.859+07:00',
       });
       await CommentsTableTestHelper.addComment({});
+      await CommentLikesTableTestHelper.addLike({});
 
       const comments = await commentRepository.getAllCommentByThreadId(threadId);
 
@@ -152,6 +155,7 @@ describe('CommentRepositoryPostgres', () => {
           content: 'deleted content',
           inserted_at: '2021-12-22T20:42:14.859+07:00',
           deleted_at: '2021-12-22T21:42:14.859+07:00',
+          likes: '0',
         },
       ));
       expect(comments[1]).toStrictEqual(new DetailedComment(
@@ -161,6 +165,7 @@ describe('CommentRepositoryPostgres', () => {
           content: 'a content',
           inserted_at: '2021-12-22T22:42:14.859+07:00',
           deleted_at: null,
+          likes: '1',
         },
       ));
     });

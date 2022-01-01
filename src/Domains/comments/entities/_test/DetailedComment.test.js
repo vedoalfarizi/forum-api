@@ -19,6 +19,7 @@ describe('a DetailedComment entities', () => {
       inserted_at: '2021-12-23T07:22:23.775Z',
       content: 'a deleted comment',
       deleted_at: '2021-12-23T07:23:23.775Z',
+      likes: 2,
     };
 
     expect(() => new DetailedComment(payloadComments)).toThrowError('DETAILED_COMMENT.NOT_MEET_DATA_TYPE_SPECIFICATION');
@@ -31,15 +32,17 @@ describe('a DetailedComment entities', () => {
       inserted_at: '2021-12-23T07:22:23.775Z',
       content: 'a deleted comment',
       deleted_at: '2021-12-23T07:23:23.775Z',
+      likes: '2',
     };
 
     const {
-      id, username, content, date,
+      id, username, content, date, likeCount,
     } = new DetailedComment(payloadComments);
 
     expect(id).toEqual(payloadComments.id);
     expect(username).toEqual(payloadComments.username);
     expect(content).toEqual('**komentar telah dihapus**');
     expect(date).toEqual(payloadComments.inserted_at);
+    expect(likeCount).toEqual(0);
   });
 });
