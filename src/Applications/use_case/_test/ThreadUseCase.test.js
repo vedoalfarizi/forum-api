@@ -1,9 +1,11 @@
 const AddThread = require('../../../Domains/threads/entities/AddThread');
 const AddedThread = require('../../../Domains/threads/entities/AddedThread');
 const DetailedThreadComments = require('../../../Domains/threads/entities/DetailedThreadComments');
+const DetailedCommentsReplies = require('../../../Domains/comments/entities/DetailedCommentsReplies');
 
 const ThreadRepository = require('../../../Domains/threads/ThreadRepository');
 const CommentRepository = require('../../../Domains/comments/CommentRepository');
+const ReplyRepository = require('../../../Domains/replies/ReplyRepository');
 
 const ThreadUseCase = require('../ThreadUseCase');
 
@@ -51,7 +53,7 @@ describe('ThreadUseCase', () => {
         id: useCasePayload.threadId,
         title: 'a title',
         body: 'a body that related to the title',
-        inserted_at: '2021-12-22T22:42:08.179+07:00',
+        date: '2021-12-22T22:42:08.179+07:00',
         username: 'dicoding',
       };
 
@@ -59,34 +61,60 @@ describe('ThreadUseCase', () => {
         {
           id: 'comment-123',
           username: 'vedoalfarizi',
-          inserted_at: '2021-12-22T22:42:14.859+07:00',
-          content: 'a comment',
-          deleted_at: '2021-12-22T22:44:14.859+07:00',
+          date: '2021-12-22T22:42:14.859+07:00',
+          content: '**komentar telah dihapus**',
+          likeCount: 10,
         },
         {
           id: 'comment-456',
           username: 'vedoalfarizi',
-          inserted_at: '2021-12-22T22:50:14.859+07:00',
+          date: '2021-12-22T22:50:14.859+07:00',
           content: 'a second comment',
-          deleted_at: null,
+          likeCount: 0,
         },
       ];
 
+      const expectedReplyResponse = [
+        {
+          id: 'reply-123',
+          commentId: 'comment-123',
+          username: 'vedoalfarizi',
+          date: '2021-12-22T22:42:14.859+07:00',
+          content: '**balasan telah dihapus**',
+        },
+        {
+          id: 'reply-456',
+          commentId: 'comment-123',
+          username: 'vedoalfarizi',
+          date: '2021-12-22T22:50:14.859+07:00',
+          content: 'a second reply',
+        },
+      ];
+
+      const detailedCommentsReplies = new DetailedCommentsReplies(
+        expectedCommentResponse,
+        expectedReplyResponse,
+      );
+
       const expectedResponse = new DetailedThreadComments(
         expectedThreadResponse,
-        expectedCommentResponse,
+        detailedCommentsReplies.comments,
       );
 
       const mockThreadRepository = new ThreadRepository();
       const mockCommentRepository = new CommentRepository();
+      const mockReplyRepository = new ReplyRepository();
 
       mockThreadRepository.getDetailById = jest.fn(() => Promise.resolve(expectedThreadResponse));
       mockCommentRepository.getAllCommentByThreadId = jest
         .fn(() => Promise.resolve(expectedCommentResponse));
+      mockReplyRepository.getAllCommentReplies = jest
+        .fn(() => Promise.resolve(expectedReplyResponse));
 
       const threadUseCase = new ThreadUseCase({
         threadRepository: mockThreadRepository,
         commentRepository: mockCommentRepository,
+        replyRepository: mockReplyRepository,
       });
 
       const detailedThread = await threadUseCase.getThreadDetailExec(useCasePayload);
@@ -95,6 +123,7 @@ describe('ThreadUseCase', () => {
       expect(mockThreadRepository.getDetailById).toBeCalledWith(useCasePayload.threadId);
       expect(mockCommentRepository.getAllCommentByThreadId)
         .toBeCalledWith(useCasePayload.threadId);
+      expect(mockReplyRepository.getAllCommentReplies).toBeCalled();
     });
 
     it('shoud return error cause not contrain needed property', async () => {
@@ -105,6 +134,7 @@ describe('ThreadUseCase', () => {
       const threadUseCase = new ThreadUseCase({
         threadRepository: {},
         commentRepository: {},
+        replyRepository: {},
       });
 
       await expect(threadUseCase.getThreadDetailExec(useCasePayload)).rejects.toThrowError('DETAIL_THREAD.NOT_CONTAIN_NEEDED_PROPERTY');
@@ -116,8 +146,9 @@ describe('ThreadUseCase', () => {
       };
 
       const threadUseCase = new ThreadUseCase({
-        threadRepository: null,
-        commentRepository: null,
+        threadRepository: {},
+        commentRepository: {},
+        replyRepository: {},
       });
 
       await expect(threadUseCase.getThreadDetailExec(useCasePayload)).rejects.toThrowError('DETAIL_THREAD.NOT_MEET_DATA_TYPE_SPECIFICATION');
