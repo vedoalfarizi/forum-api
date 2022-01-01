@@ -11,7 +11,11 @@ const ServerTestHelper = {
       id: 'user-123',
       username: 'dicoding',
     };
-    await UsersTableTestHelper.addUser(userPayload);
+
+    const existingUser = await UsersTableTestHelper.findUsersById(userPayload.id);
+    if (!existingUser.length) {
+      await UsersTableTestHelper.addUser(userPayload);
+    }
 
     return Jwt.token.generate(userPayload, process.env.ACCESS_TOKEN_KEY);
   },

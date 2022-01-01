@@ -15,6 +15,14 @@ const routes = (handler) => ([
       auth: 'forumApiService',
     },
   },
+  {
+    method: 'PUT',
+    path: '/threads/{threadId}/comments/{commentId}/likes',
+    handler: handler.likeDislikeCommentHandler,
+    options: {
+      auth: 'forumApiService',
+    },
+  },
 ]);
 
 module.exports = routes;
