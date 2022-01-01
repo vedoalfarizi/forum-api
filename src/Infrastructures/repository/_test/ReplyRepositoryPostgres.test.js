@@ -7,6 +7,7 @@ const RepliesTableTestHelper = require('../../../../tests/RepliesTableTestHelper
 
 const AddReply = require('../../../Domains/replies/entities/AddReply');
 const AddedReply = require('../../../Domains/replies/entities/AddedReply');
+const DetailedReply = require('../../../Domains/replies/entities/DetailedReply');
 
 const ReplyRepositoryPostgres = require('../ReplyRepositoryPostgres');
 
@@ -50,6 +51,52 @@ describe('ReplyRepositoryPostgres', () => {
         content: addedReply.content,
         owner: addedReply.owner,
       }));
+    });
+  });
+
+  describe('getAllCommentReplies function', () => {
+    it('should return empty array when replies not exists', async () => {
+      const replyRepository = new ReplyRepositoryPostgres(pool, fakeIdGenerator);
+
+      const replies = await replyRepository.getAllCommentReplies();
+
+      expect(replies).toStrictEqual([]);
+    });
+
+    it('should return array of replies correctly', async () => {
+      const replyRepository = new ReplyRepositoryPostgres(pool, fakeIdGenerator);
+
+      await RepliesTableTestHelper.addReply({
+        id: 'reply-234',
+        content: 'deleted reply',
+        insertedAt: '2021-12-22T20:42:14.859+07:00',
+        deletedAt: '2021-12-22T21:42:14.859+07:00',
+      });
+      await RepliesTableTestHelper.addReply({});
+
+      const replies = await replyRepository.getAllCommentReplies();
+
+      expect(replies).toHaveLength(2);
+      expect(replies[0]).toStrictEqual(new DetailedReply(
+        {
+          id: 'reply-234',
+          comment_id: 'comment-123',
+          username: 'dicoding',
+          content: 'deleted content',
+          inserted_at: '2021-12-22T20:42:14.859+07:00',
+          deleted_at: '2021-12-22T21:42:14.859+07:00',
+        },
+      ));
+      expect(replies[1]).toStrictEqual(new DetailedReply(
+        {
+          id: 'reply-123',
+          comment_id: 'comment-123',
+          username: 'dicoding',
+          content: 'a reply to the comment',
+          inserted_at: '2021-12-22T22:42:14.859+07:00',
+          deleted_at: null,
+        },
+      ));
     });
   });
 });

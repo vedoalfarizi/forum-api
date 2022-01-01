@@ -125,6 +125,7 @@ describe('CommentRepositoryPostgres', () => {
 
   describe('getAllCommentByThreadId function', () => {
     const threadId = 'thread-123';
+
     it('should return empty array when comment not exists on the thread', async () => {
       const commentRepository = new CommentRepositoryPostgres(pool, fakeIdGenerator);
 
