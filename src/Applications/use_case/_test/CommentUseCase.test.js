@@ -31,6 +31,7 @@ describe('CommentUseCase', () => {
       const commentUseCase = new CommentUseCase({
         threadRepository: mockThreadRepository,
         commentRepository: mockCommentRepository,
+        commentLikeRepository: {},
       });
 
       const addedComment = await commentUseCase.addCommentExec(useCasePayload);
@@ -62,6 +63,7 @@ describe('CommentUseCase', () => {
       const commentUseCase = new CommentUseCase({
         threadRepository: mockThreadRepository,
         commentRepository: mockCommentRepository,
+        commentLikeRepository: {},
       });
 
       await commentUseCase.deleteCommentExec(useCasePayload);
@@ -102,6 +104,36 @@ describe('CommentUseCase', () => {
         .toBeCalledWith(useCasePayload.threadId, useCasePayload.commentId);
       expect(mockCommentLikeRepository.updateLikeDislikeCommentByUser)
         .toBeCalledWith(useCasePayload.commentId, useCasePayload.userId);
+    });
+
+    it('shoud return error cause not contrain needed property', async () => {
+      const useCasePayload = {
+        inValid: '',
+      };
+
+      const commentUseCase = new CommentUseCase({
+        threadRepository: {},
+        commentRepository: {},
+        commentLikeRepository: {},
+      });
+
+      await expect(commentUseCase.likeDislikeCommentExec(useCasePayload)).rejects.toThrowError('LIKE_COMMENTS.NOT_CONTAIN_NEEDED_PROPERTY');
+    });
+
+    it('shoud return error cause not meet data type spec', async () => {
+      const useCasePayload = {
+        threadId: [0],
+        commentId: { key: 'value' },
+        userId: true,
+      };
+
+      const commentUseCase = new CommentUseCase({
+        threadRepository: {},
+        commentRepository: {},
+        commentLikeRepository: {},
+      });
+
+      await expect(commentUseCase.likeDislikeCommentExec(useCasePayload)).rejects.toThrowError('LIKE_COMMENTS.NOT_MEET_DATA_TYPE_SPECIFICATION');
     });
   });
 });
