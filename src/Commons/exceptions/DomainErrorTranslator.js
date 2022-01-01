@@ -29,6 +29,9 @@ DomainErrorTranslator._directories = {
 
   'ADD_COMMENT.NOT_CONTAIN_NEEDED_PROPERTY': new InvariantError('tidak dapat menambahkan komentar pada thread karena komentar kosong'),
   'ADD_COMMENT.NOT_MEET_DATA_TYPE_SPECIFICATION': new InvariantError('tidak dapat menambahkan komentar pada thread karena komentar tidak valid'),
+
+  'LIKE_COMMENTS.NOT_CONTAIN_NEEDED_PROPERTY': new InvariantError('harus mengirimkan threadId dan commentId'),
+  'LIKE_COMMENTS.NOT_MEET_DATA_TYPE_SPECIFICATION': new InvariantError('threadId dan commentId harus string'),
 };
 
 module.exports = DomainErrorTranslator;

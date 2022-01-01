@@ -2,9 +2,10 @@ const AddComment = require('../../Domains/comments/entities/AddComment');
 const DeleteComment = require('../../Domains/comments/entities/DeleteComment');
 
 class CommentUseCase {
-  constructor({ threadRepository, commentRepository }) {
+  constructor({ threadRepository, commentRepository, commentLikeRepository }) {
     this._threadRepository = threadRepository;
     this._commentRepository = commentRepository;
+    this._commentLikeRepository = commentLikeRepository;
   }
 
   async addCommentExec(useCasePayload) {
@@ -26,6 +27,27 @@ class CommentUseCase {
     await this._commentRepository.verifyCommentOwner(deleteComment.commentId, deleteComment.userId);
 
     await this._commentRepository.deleteComment(deleteComment.commentId);
+  }
+
+  _verifyLikeDislikeCommentPayload({ threadId, commentId }) {
+    if (!threadId || !commentId) {
+      throw new Error('LIKE_COMMENTS.NOT_CONTAIN_NEEDED_PROPERTY');
+    }
+
+    if (typeof threadId !== 'string' || typeof commentId !== 'string') {
+      throw new Error('LIKE_COMMENTS.NOT_MEET_DATA_TYPE_SPECIFICATION');
+    }
+  }
+
+  async likeDislikeCommentExec(useCasePayload) {
+    this._verifyLikeDislikeCommentPayload(useCasePayload);
+
+    await this._commentRepository.verifyThreadComments(
+      useCasePayload.threadId, useCasePayload.commentId,
+    );
+    await this._commentLikeRepository.updateLikeDislikeCommentByUser(
+      useCasePayload.commentId, useCasePayload.userId,
+    );
   }
 }
 

@@ -2,6 +2,7 @@ const AddComment = require('../../../Domains/comments/entities/AddComment');
 const AddedComment = require('../../../Domains/comments/entities/AddedComment');
 
 const CommentRepository = require('../../../Domains/comments/CommentRepository');
+const CommentLikeRepository = require('../../../Domains/comment_likes/CommentLikeRepository');
 const ThreadRepository = require('../../../Domains/threads/ThreadRepository');
 
 const CommentUseCase = require('../CommentUseCase');
@@ -71,6 +72,36 @@ describe('CommentUseCase', () => {
         .toBeCalledWith(useCasePayload.threadId, useCasePayload.commentId);
       expect(mockCommentRepository.deleteComment)
         .toBeCalledWith(useCasePayload.commentId);
+    });
+  });
+
+  describe('likeComment function', () => {
+    it('should orchestrating the like comment action correctly', async () => {
+      const useCasePayload = {
+        userId: 'user-123',
+        threadId: 'thread-123',
+        commentId: 'comment-123',
+      };
+
+      const mockCommentRepository = new CommentRepository();
+      const mockThreadRepository = new ThreadRepository();
+      const mockCommentLikeRepository = new CommentLikeRepository();
+
+      mockCommentRepository.verifyThreadComments = jest.fn(() => Promise.resolve());
+      mockCommentLikeRepository.updateLikeDislikeCommentByUser = jest.fn(() => Promise.resolve());
+
+      const commentUseCase = new CommentUseCase({
+        threadRepository: mockThreadRepository,
+        commentRepository: mockCommentRepository,
+        commentLikeRepository: mockCommentLikeRepository,
+      });
+
+      await commentUseCase.likeDislikeCommentExec(useCasePayload);
+
+      expect(mockCommentRepository.verifyThreadComments)
+        .toBeCalledWith(useCasePayload.threadId, useCasePayload.commentId);
+      expect(mockCommentLikeRepository.updateLikeDislikeCommentByUser)
+        .toBeCalledWith(useCasePayload.commentId, useCasePayload.userId);
     });
   });
 });

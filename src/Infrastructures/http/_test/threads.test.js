@@ -323,4 +323,60 @@ describe('/threads endpoint', () => {
       expect(responseJson.message).toEqual('thread tidak ditemukan');
     });
   });
+
+  describe('when PUT  /threads/{threadId}/comments/{commentId}/likes', () => {
+    it('should response 200 and return succes', async () => {
+      const server = await createServer(container);
+
+      await ServerTestHelper.addThreadComments();
+      const accessToken = await ServerTestHelper.getAccessToken();
+
+      const response = await server.inject({
+        method: 'PUT',
+        url: '/threads/thread-123/comments/comment-234/likes',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(200);
+      expect(responseJson.status).toEqual('success');
+    });
+
+    it('should response 401 when auth not valid', async () => {
+      const server = await createServer(container);
+
+      const response = await server.inject({
+        method: 'PUT',
+        url: '/threads/thread-123/comments/comment-234/likes',
+        headers: {
+          Authorization: 'Bearer invalid token',
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(401);
+      expect(responseJson.error).toEqual('Unauthorized');
+    });
+
+    it('should response 404 when thread or comment not found', async () => {
+      const server = await createServer(container);
+
+      const accessToken = await ServerTestHelper.getAccessToken();
+
+      const response = await server.inject({
+        method: 'PUT',
+        url: '/threads/thread-123/comments/comment-234/likes',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(404);
+      expect(responseJson.status).toEqual('fail');
+      expect(responseJson.message).toEqual('Komentar pada thread tidak ditemukan');
+    });
+  });
 });
