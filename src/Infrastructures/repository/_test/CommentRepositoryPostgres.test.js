@@ -33,7 +33,7 @@ describe('CommentRepositoryPostgres', () => {
   const fakeIdGenerator = () => '123';
 
   describe('addComment function', () => {
-    it('should persist add thread and return added thread correctly', async () => {
+    it('should persist add comment and return added comment correctly', async () => {
       const addComment = new AddComment({
         userId: 'user-123',
         content: 'a content',
