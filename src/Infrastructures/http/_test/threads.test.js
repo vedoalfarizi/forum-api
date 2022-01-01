@@ -324,7 +324,7 @@ describe('/threads endpoint', () => {
     });
   });
 
-  describe('when PUT  /threads/{threadId}/comments/{commentId}/likes', () => {
+  describe('when PUT /threads/{threadId}/comments/{commentId}/likes', () => {
     it('should response 200 and return succes', async () => {
       const server = await createServer(container);
 
@@ -377,6 +377,103 @@ describe('/threads endpoint', () => {
       expect(response.statusCode).toEqual(404);
       expect(responseJson.status).toEqual('fail');
       expect(responseJson.message).toEqual('Komentar pada thread tidak ditemukan');
+    });
+  });
+
+  describe('when POST /threads/{threadId}/comments/{commentId}/replies', () => {
+    it('should response 201 and persisted reply', async () => {
+      const payload = {
+        content: 'a reply to the comment',
+      };
+
+      const server = await createServer(container);
+
+      await ServerTestHelper.addThreadComments({});
+      const accessToken = await ServerTestHelper.getAccessToken();
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/threads/thread-123/comments/comment-234/replies',
+        payload,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(201);
+      expect(responseJson.status).toEqual('success');
+      expect(responseJson.data.addedReply).toBeDefined();
+    });
+
+    it('should response 401 when auth not valid', async () => {
+      const payload = {
+        content: 'a reply to the comment',
+      };
+
+      const server = await createServer(container);
+      const response = await server.inject({
+        method: 'POST',
+        url: '/threads/thread-123/comments/comment-234/replies',
+        payload,
+        headers: {
+          Authorization: 'Bearer invalid access token',
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(401);
+      expect(responseJson.error).toEqual('Unauthorized');
+    });
+
+    it('should response 400 when request payload not contain needed property', async () => {
+      const payload = {
+        invalid: 'a title',
+      };
+
+      const server = await createServer(container);
+
+      await ServerTestHelper.addThreadComments({});
+      const accessToken = await ServerTestHelper.getAccessToken();
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/threads/thread-123/comments/comment-234/replies',
+        payload,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(400);
+      expect(responseJson.status).toEqual('fail');
+      expect(responseJson.message).toEqual('tidak dapat menambahkan balasan pada komentar karena balasan kosong');
+    });
+
+    it('should response 400 when request payload not meet data type specification', async () => {
+      const payload = {
+        content: true,
+      };
+
+      const server = await createServer(container);
+
+      await ServerTestHelper.addThreadComments({});
+      const accessToken = await ServerTestHelper.getAccessToken();
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/threads/thread-123/comments/comment-234/replies',
+        payload,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(400);
+      expect(responseJson.status).toEqual('fail');
+      expect(responseJson.message).toEqual('tidak dapat menambahkan balasan pada komentar karena balasan tidak valid');
     });
   });
 });
