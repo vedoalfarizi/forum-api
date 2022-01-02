@@ -80,7 +80,7 @@ describe('CommentRepositoryPostgres', () => {
   });
 
   describe('verifyThreadComments function', () => {
-    it('should throw NotFoundError when thread or comment not found', async () => {
+    it('should throw NotFoundError when thread comment not found', async () => {
       const commentRepository = new CommentRepositoryPostgres(pool, fakeIdGenerator);
       const threadId = 'thread-123';
       const commentId = 'comment-123';
@@ -89,7 +89,7 @@ describe('CommentRepositoryPostgres', () => {
         .rejects.toThrow(NotFoundError);
     });
 
-    it('should not throw NotFoundError when thread and comment exists', async () => {
+    it('should not throw NotFoundError when thread comment exists', async () => {
       const commentRepository = new CommentRepositoryPostgres(pool, fakeIdGenerator);
       const threadId = 'thread-123';
       const commentId = 'comment-123';
@@ -105,7 +105,9 @@ describe('CommentRepositoryPostgres', () => {
     it('should throw AuthorizationError when not the owner of comment', async () => {
       const commentRepository = new CommentRepositoryPostgres(pool, fakeIdGenerator);
       const commentId = 'comment-123';
-      const owner = 'user-123';
+      const owner = 'user-234';
+
+      await CommentsTableTestHelper.addComment({});
 
       await expect(commentRepository.verifyCommentOwner(commentId, owner))
         .rejects.toThrow(AuthorizationError);

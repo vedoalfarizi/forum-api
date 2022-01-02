@@ -45,4 +45,35 @@ describe('ReplyUseCase', () => {
       }));
     });
   });
+
+  describe('deleteReply function', () => {
+    it('should orchestrating the add comment action correctly', async () => {
+      const useCasePayload = {
+        userId: 'user-123',
+        threadId: 'thread-123',
+        commentId: 'comment-123',
+        replyId: 'reply-123',
+      };
+
+      const mockReplyRepository = new ReplyRepository();
+
+      mockReplyRepository.verifyCommentReply = jest.fn(() => Promise.resolve());
+      mockReplyRepository.verifyReplyOwner = jest.fn(() => Promise.resolve());
+      mockReplyRepository.deleteReply = jest.fn(() => Promise.resolve());
+
+      const replyUseCase = new ReplyUseCase({
+        commentRepository: {},
+        replyRepository: mockReplyRepository,
+      });
+
+      await replyUseCase.deleteReplyExec(useCasePayload);
+
+      expect(mockReplyRepository.verifyCommentReply)
+        .toBeCalledWith(useCasePayload.commentId, useCasePayload.replyId);
+      expect(mockReplyRepository.verifyReplyOwner)
+        .toBeCalledWith(useCasePayload.replyId, useCasePayload.userId);
+      expect(mockReplyRepository.deleteReply)
+        .toBeCalledWith(useCasePayload.replyId);
+    });
+  });
 });
