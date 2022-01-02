@@ -1,6 +1,8 @@
 const ReplyRepository = require('../../Domains/replies/ReplyRepository');
 const AddedReply = require('../../Domains/replies/entities/AddedReply');
 const DetailedReply = require('../../Domains/replies/entities/DetailedReply');
+const AuthorizationError = require('../../Commons/exceptions/AuthorizationError');
+const NotFoundError = require('../../Commons/exceptions/NotFoundError');
 
 class ReplyRepositoryPostgres extends ReplyRepository {
   constructor(pool, idGenerator) {
@@ -37,6 +39,31 @@ class ReplyRepositoryPostgres extends ReplyRepository {
     });
 
     return result.rows.map((comment) => new DetailedReply(comment));
+  }
+
+  async deleteReply(replyId) {
+    await this._pool.query({
+      text: 'UPDATE replies SET deleted_at = $1 WHERE id = $2',
+      values: [new Date(), replyId],
+    });
+  }
+
+  async verifyReplyOwner(replyId, owner) {
+    const result = await this._pool.query({
+      text: 'SELECT id FROM replies WHERE id = $1 AND owner = $2',
+      values: [replyId, owner],
+    });
+
+    if (!result.rowCount) throw new AuthorizationError('Tidak dapat menghapus balasan komentar yang bukan milik Anda');
+  }
+
+  async verifyCommentReply(commentId, replyId) {
+    const result = await this._pool.query({
+      text: 'SELECT id FROM replies WHERE id = $1 AND comment_id = $2',
+      values: [replyId, commentId],
+    });
+
+    if (!result.rowCount) throw new NotFoundError('Balasan pada komentar tidak ditemukan');
   }
 }
 

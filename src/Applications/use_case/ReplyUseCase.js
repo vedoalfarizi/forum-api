@@ -1,5 +1,5 @@
 const AddReply = require('../../Domains/replies/entities/AddReply');
-const AddedReply = require('../../Domains/replies/entities/AddedReply');
+const DeleteReply = require('../../Domains/replies/entities/DeleteReply');
 
 class ReplyUseCase {
   constructor({ commentRepository, replyRepository }) {
@@ -16,6 +16,14 @@ class ReplyUseCase {
     );
 
     return this._replyRepository.addReply(addReply);
+  }
+
+  async deleteReplyExec(useCasePayload) {
+    const deleteReply = new DeleteReply(useCasePayload);
+
+    await this._replyRepository.verifyCommentReply(deleteReply.commentId, deleteReply.replyId);
+    await this._replyRepository.verifyReplyOwner(deleteReply.replyId, deleteReply.userId);
+    await this._replyRepository.deleteReply(deleteReply.replyId);
   }
 }
 
