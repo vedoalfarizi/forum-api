@@ -45,8 +45,18 @@ class CommentUseCase {
     await this._commentRepository.verifyThreadComments(
       useCasePayload.threadId, useCasePayload.commentId,
     );
-    await this._commentLikeRepository.updateLikeDislikeCommentByUser(
-      useCasePayload.commentId, useCasePayload.userId,
+
+    const isLiked = await this._commentLikeRepository.isCommentsLiked(
+      useCasePayload.userId, useCasePayload.commentId,
+    );
+    if (isLiked) {
+      return this._commentLikeRepository.disLikeComments(
+        useCasePayload.userId, useCasePayload.commentId,
+      );
+    }
+
+    return this._commentLikeRepository.likeComments(
+      useCasePayload.userId, useCasePayload.commentId,
     );
   }
 }

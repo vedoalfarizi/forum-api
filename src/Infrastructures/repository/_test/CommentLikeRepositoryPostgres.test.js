@@ -24,44 +24,60 @@ describe('CommentLikeRepositoryPostgres', () => {
     await pool.end();
   });
 
-  describe('updateLikeDislikeCommentByUser', () => {
-    it('should add like comment to database', async () => {
+  describe('isCommentsLiked function', () => {
+    const payload = {
+      commentId: 'comment-123',
+      userId: 'user-123',
+    };
+
+    it('should return true if comment was liked', async () => {
       const commentLikeRepository = new CommentLikeRepositoryPostgres(pool);
-      const payload = {
-        commentId: 'comment-123',
-        userId: 'user-123',
-      };
-
-      await commentLikeRepository.updateLikeDislikeCommentByUser(
-        payload.commentId,
-        payload.userId,
-      );
-
-      const like = await CommentLikesTableTestHelper.findUserCommentLike(
-        payload.commentId,
-        payload.userId,
-      );
-      expect(like).toHaveLength(1);
-    });
-
-    it('should delete like comment from database', async () => {
-      const commentLikeRepository = new CommentLikeRepositoryPostgres(pool);
-      const payload = {
-        commentId: 'comment-123',
-        userId: 'user-123',
-      };
 
       await CommentLikesTableTestHelper.addLike({});
 
-      await commentLikeRepository.updateLikeDislikeCommentByUser(
-        payload.commentId,
-        payload.userId,
-      );
+      expect(await commentLikeRepository.isCommentsLiked(payload.userId, payload.commentId))
+        .toEqual(true);
+    });
 
-      const like = await CommentLikesTableTestHelper.findUserCommentLike(
-        payload.commentId,
-        payload.userId,
-      );
+    it('should return false if comment was does not liked', async () => {
+      const commentLikeRepository = new CommentLikeRepositoryPostgres(pool);
+
+      expect(await commentLikeRepository.isCommentsLiked(payload.userId, payload.commentId))
+        .toEqual(false);
+    });
+  });
+
+  describe('likeComments function', () => {
+    const payload = {
+      commentId: 'comment-123',
+      userId: 'user-123',
+    };
+
+    it('should persist like a comment', async () => {
+      const commentLikeRepository = new CommentLikeRepositoryPostgres(pool);
+
+      await commentLikeRepository.likeComments(payload.userId, payload.commentId);
+
+      const like = await CommentLikesTableTestHelper
+        .findUserCommentLike(payload.commentId, payload.userId);
+      expect(like).toHaveLength(1);
+    });
+  });
+
+  describe('disLikeComments function', () => {
+    const payload = {
+      commentId: 'comment-123',
+      userId: 'user-123',
+    };
+
+    it('should persist dislike a comment', async () => {
+      const commentLikeRepository = new CommentLikeRepositoryPostgres(pool);
+      await CommentLikesTableTestHelper.addLike({});
+
+      await commentLikeRepository.disLikeComments(payload.userId, payload.commentId);
+
+      const like = await CommentLikesTableTestHelper
+        .findUserCommentLike(payload.commentId, payload.userId);
       expect(like).toHaveLength(0);
     });
   });
