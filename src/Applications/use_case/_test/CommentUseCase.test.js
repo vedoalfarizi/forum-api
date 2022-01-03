@@ -77,7 +77,7 @@ describe('CommentUseCase', () => {
     });
   });
 
-  describe('likeComment function', () => {
+  describe('likeDislikeComment function', () => {
     it('should orchestrating the like comment action correctly', async () => {
       const useCasePayload = {
         userId: 'user-123',
@@ -90,7 +90,8 @@ describe('CommentUseCase', () => {
       const mockCommentLikeRepository = new CommentLikeRepository();
 
       mockCommentRepository.verifyThreadComments = jest.fn(() => Promise.resolve());
-      mockCommentLikeRepository.updateLikeDislikeCommentByUser = jest.fn(() => Promise.resolve());
+      mockCommentLikeRepository.isCommentsLiked = jest.fn(() => Promise.resolve(false));
+      mockCommentLikeRepository.likeComments = jest.fn(() => Promise.resolve());
 
       const commentUseCase = new CommentUseCase({
         threadRepository: mockThreadRepository,
@@ -102,8 +103,41 @@ describe('CommentUseCase', () => {
 
       expect(mockCommentRepository.verifyThreadComments)
         .toBeCalledWith(useCasePayload.threadId, useCasePayload.commentId);
-      expect(mockCommentLikeRepository.updateLikeDislikeCommentByUser)
-        .toBeCalledWith(useCasePayload.commentId, useCasePayload.userId);
+      expect(mockCommentLikeRepository.isCommentsLiked)
+        .toBeCalledWith(useCasePayload.userId, useCasePayload.commentId);
+      expect(mockCommentLikeRepository.likeComments)
+        .toBeCalledWith(useCasePayload.userId, useCasePayload.commentId);
+    });
+
+    it('should orchestrating the dislike comment action correctly', async () => {
+      const useCasePayload = {
+        userId: 'user-123',
+        threadId: 'thread-123',
+        commentId: 'comment-123',
+      };
+
+      const mockCommentRepository = new CommentRepository();
+      const mockThreadRepository = new ThreadRepository();
+      const mockCommentLikeRepository = new CommentLikeRepository();
+
+      mockCommentRepository.verifyThreadComments = jest.fn(() => Promise.resolve());
+      mockCommentLikeRepository.isCommentsLiked = jest.fn(() => Promise.resolve(true));
+      mockCommentLikeRepository.disLikeComments = jest.fn(() => Promise.resolve());
+
+      const commentUseCase = new CommentUseCase({
+        threadRepository: mockThreadRepository,
+        commentRepository: mockCommentRepository,
+        commentLikeRepository: mockCommentLikeRepository,
+      });
+
+      await commentUseCase.likeDislikeCommentExec(useCasePayload);
+
+      expect(mockCommentRepository.verifyThreadComments)
+        .toBeCalledWith(useCasePayload.threadId, useCasePayload.commentId);
+      expect(mockCommentLikeRepository.isCommentsLiked)
+        .toBeCalledWith(useCasePayload.userId, useCasePayload.commentId);
+      expect(mockCommentLikeRepository.disLikeComments)
+        .toBeCalledWith(useCasePayload.userId, useCasePayload.commentId);
     });
 
     it('shoud return error cause not contrain needed property', async () => {
